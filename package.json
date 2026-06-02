@@ -1,0 +1,24 @@
+{
+  "name": "remotion-graphify-setup-wizard",
+  "version": "0.1.0",
+  "description": "Interactive setup wizard for a Remotion + Graphify video workspace with folder system, agent skill, and cache hygiene.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "clean": "node scripts/clean-remotion-cache.mjs",
+    "clean:apply": "node scripts/clean-remotion-cache.mjs --apply",
+    "questions": "node scripts/setup.mjs --questions-only"
+  },
+  "keywords": [
+    "remotion",
+    "graphify",
+    "video",
+    "ai",
+    "setup",
+    "wizard",
+    "skills"
+  ],
+  "license": "MIT"
+}

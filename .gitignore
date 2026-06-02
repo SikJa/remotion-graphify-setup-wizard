@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+.env
+*.log
+workspace/
+.cache/
+dist/
+out/
+tmp/
+temp/
+Scratch/
+Renders Viejos/
