@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { spawnSync, execFileSync } from 'node:child_process';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
@@ -100,8 +101,8 @@ const questions = [
   {
     key: 'graphifyMode',
     section: '5) Agentes IA y Graphify',
-    context: 'Graphify crea un mapa del proyecto para que el agente entienda archivos y relaciones antes de tocar código. Recomendado: instalar+indexar.',
-    label: 'Graphify: instalar+indexar, configurar, saltear',
+    context: 'Graphify crea el mapa del editor para que el agente entienda archivos y relaciones antes de tocar código. En este kit viene como parte del flujo completo.',
+    label: 'Graphify: instalar+indexar o configurar si ya lo tenés',
     defaultValue: 'instalar+indexar',
   },
   {
@@ -114,8 +115,8 @@ const questions = [
   {
     key: 'createRemotion',
     section: '7) Acciones finales',
-    context: 'Si elegís yes, el wizard intenta crear un proyecto Remotion con npx create-video. Puede abrir preguntas propias; elegí una plantilla simple/minimal.',
-    label: '¿Crear proyecto Remotion ahora? yes/no',
+    context: 'Si elegís yes, el wizard instala el editor completo incluido: componentes, templates, scripts, Hyperframes, Remotion config y skill pack.',
+    label: '¿Instalar editor Remotion completo ahora? yes/no',
     defaultValue: 'yes',
   },
   {
@@ -129,7 +130,7 @@ const questions = [
 
 if (process.argv.includes('--questions-only')) {
   let lastSection = '';
-  questions.slice(0, 15).forEach((q, i) => {
+  questions.forEach((q, i) => {
     if (q.section !== lastSection) {
       lastSection = q.section;
       console.log(`\n${q.section}`);
@@ -149,6 +150,20 @@ function run(cmd, args, cwd) {
 }
 function mkdir(p) { fs.mkdirSync(p, {recursive:true}); }
 function write(p, content) { mkdir(path.dirname(p)); fs.writeFileSync(p, content, 'utf8'); }
+function copyDir(src, dest) {
+  if (!fs.existsSync(src)) return false;
+  mkdir(dest);
+  for (const entry of fs.readdirSync(src, {withFileTypes: true})) {
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(from, to);
+    else fs.copyFileSync(from, to);
+  }
+  return true;
+}
+function repoRoot() {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+}
 function normalizeUserPath(value) {
   if (!value) return value;
   // Git Bash/MSYS users often paste /c/Users/... paths. Node on Windows would
@@ -195,7 +210,7 @@ function installGraphifyIfNeeded() {
 }
 
 async function main() {
-  console.log('Remotion + Graphify Setup Wizard\n');
+  console.log('Remotion Editor Kit Wizard — Remotion + Graphify + Hyperframes\n');
   console.log('Dependency check:');
   for (const [cmd, required] of [['node',true], ['npm',true], ['git',true], ['python',false], ['ffmpeg',false], ['graphify',false]]) {
     console.log(`${has(cmd) ? '✓' : (required ? '✗' : '○')} ${cmd}${required ? ' (required)' : ' (optional)'}`);
@@ -259,11 +274,36 @@ async function main() {
   if (/^y/i.test(answers.createRemotion)) {
     mkdir(folders.remotion);
     const projectDir = path.join(folders.remotion, answers.projectName.replace(/[^a-z0-9_-]+/gi, '-').toLowerCase());
-    if (!fs.existsSync(projectDir)) {
-      console.log('\nCreating Remotion project. If create-video asks questions, choose a minimal/blank template.');
-      const res = run('npx', ['create-video@latest', projectDir], workspace);
-      if (res.status !== 0) console.log('Remotion creation did not complete automatically. Run manually: npx create-video@latest "' + projectDir + '"');
+    const starterDir = path.join(repoRoot(), 'starter', 'editor');
+    if (!fs.existsSync(path.join(projectDir, 'package.json'))) {
+      console.log('\nInstalling full editor starter: Remotion components, templates, scripts, Hyperframes, AGENTS.md and skill pack.');
+      const copied = copyDir(starterDir, projectDir);
+      if (!copied) {
+        console.log('Starter editor files were not found. Fallback: run manually: npx create-video@latest "' + projectDir + '"');
+        const res = run('npx', ['create-video@latest', '--yes', '--blank', projectDir], workspace);
+        if (res.status !== 0) console.log('Remotion creation did not complete automatically.');
+      }
+    } else {
+      console.log('\nEditor project already exists, leaving existing files untouched: ' + projectDir);
     }
+    write(path.join(projectDir, 'AGENTS.md'), `# ${answers.projectName} — Remotion Editor Kit
+
+This workspace is a full Remotion editor based on the internal Editor Pro Max system, adapted as a clean public starter.
+
+## Mandatory stack
+- Remotion for compositions, previews and renders.
+- Graphify for codebase understanding before deep exploration.
+- Hyperframes for motion graphics, animated cards, diagrams and overlay scenes.
+
+## Preview rule
+Do not claim a video edit is finished without a visible Remotion Studio preview or rendered draft. Run: npm run dev
+
+## Public safety
+Do not include private paths, client data, internal scripts, destructive cleanup flows or unpublished production notes in public assets.
+
+## Folder contract
+${Object.entries(folders).map(([k,v]) => `- ${k}: ${v}`).join('\n')}
+`);
   }
 
   if (/instalar|indexar|configurar/i.test(answers.graphifyMode)) {
@@ -273,13 +313,13 @@ async function main() {
       run('graphify', ['claude', 'install'], workspace);
       if (/indexar/i.test(answers.graphifyMode)) run('graphify', ['.'], workspace);
     } else {
-      console.log('Graphify quedó pendiente. El workspace se creó igual; instalá Graphify y luego corré desde el workspace: graphify hermes install && graphify claude install');
+      console.log('Graphify quedó pendiente por entorno/PATH. El workspace se creó igual; instalá Graphify y luego corré desde el workspace: graphify hermes install && graphify claude install && graphify .');
     }
   }
 
   console.log('\nDone. Workspace created at: ' + workspace);
   console.log('Config: ' + path.join(workspace, 'remotion-system.config.json'));
-  if (/^y/i.test(answers.startStudio)) console.log('Start Studio inside the Remotion project with: npm run dev');
+  if (/^y/i.test(answers.startStudio)) console.log('Start Studio inside the editor project with: npm run dev');
 }
 
 main().catch((err) => {

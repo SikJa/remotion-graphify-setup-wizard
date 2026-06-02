@@ -1,7 +1,7 @@
 {
-  "name": "remotion-graphify-setup-wizard",
-  "version": "0.1.0",
-  "description": "Interactive setup wizard for a Remotion + Graphify video workspace with folder system, agent skill, and cache hygiene.",
+  "name": "remotion-editor-kit-wizard",
+  "version": "0.2.0",
+  "description": "Public wizard that installs a full Remotion editor kit with Graphify, Hyperframes, templates, components, pipeline scripts, and agent skills.",
   "type": "module",
   "private": true,
   "scripts": {
@@ -14,8 +14,10 @@
   "keywords": [
     "remotion",
     "graphify",
-    "video",
-    "ai",
+    "hyperframes",
+    "video-editor",
+    "ai-editor",
+    "motion-graphics",
     "setup",
     "wizard",
     "skills"

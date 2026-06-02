@@ -1,6 +1,12 @@
-# Remotion + Graphify Video Workspace
+# Remotion Editor Kit Workspace
 
-Este workspace puede ser operado por agentes IA. Reglas obligatorias:
+Este workspace puede ser operado por agentes IA. Es un editor completo basado en Remotion, Graphify e Hyperframes.
+
+## Stack obligatorio
+
+- **Remotion**: composiciones, preview, renders y edición principal.
+- **Graphify**: mapa del codebase antes de exploración profunda.
+- **Hyperframes**: motion graphics, tarjetas, overlays, diagramas y escenas HTML.
 
 ## Graphify primero
 
@@ -18,11 +24,30 @@ Antes de explorar profundamente código, composición, rutas o estructura:
 
 No hacer edición invisible.
 
-1. Correr typecheck si existe.
+1. Correr typecheck si existe:
+   - `npm run typecheck`
 2. Levantar Remotion Studio:
    - `npm run dev`
 3. Revisar preview local antes de render final.
-4. Renderizar draft antes de final.
+4. Renderizar draft antes de decir que está terminado.
+
+## Hyperframes
+
+Usar Hyperframes para:
+
+- full-screen explainers;
+- motion cards;
+- diagramas de proceso;
+- flechas/labels;
+- overlays técnicos;
+- transiciones editoriales.
+
+Validar cuando aplique:
+
+```bash
+npm run hyperframes:lint
+npm run hyperframes:validate
+```
 
 ## Carpetas
 
@@ -32,6 +57,10 @@ No hacer edición invisible.
 - `Videos Finales/`: MP4 aprobados.
 - `Renders Viejos/`: drafts descartados.
 - `Scratch/`: temporales/cache.
+
+## Seguridad pública
+
+No incluir rutas privadas, assets personales, datos de clientes, guiones internos de producción ni comandos destructivos.
 
 ## Higiene
 
